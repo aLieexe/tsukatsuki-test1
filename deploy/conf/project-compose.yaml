@@ -1,0 +1,48 @@
+services:
+  postgresql:
+    image: postgres:18.0-alpine
+    container_name: tsukatsuki-test1_postgres
+    restart: always
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -p 5432"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+    - internal_network
+    env_file: 
+    - ../../.env
+
+
+  tsukatsuki-test1:
+    image: tsukatsuki-test1:latest
+    container_name: tsukatsuki-test1
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    depends_on:
+      postgresql:
+        condition: service_healthy
+        restart: true
+    networks:
+    - internal_network
+    - proxy_network
+    env_file: 
+    - ../../.env
+volumes:
+  postgresql_data:
+
+networks:
+  proxy_network:
+    external: true
+
+  internal_network:
+    driver: bridge
+    internal: true # blocks all external access
+

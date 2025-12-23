@@ -1,0 +1,29 @@
+# Setup, Installation etc
+- name: Load vars based on distro
+  include_vars: "{{ ansible_facts.os_family }}.yaml"
+
+- name: Install packages based on distro
+  include_tasks: "{{ ansible_facts.os_family }}-setup.yaml"
+
+# SSH
+- name: Setup SSH
+  include_tasks: ssh-setup.yaml
+
+# Automated Updates
+- name: Setup unattended-upgrades
+  include_tasks: unattended-upgrades.yaml
+
+# UFW
+- name: Setup UFW
+  include_tasks: ufw.yaml
+
+# Fail2ban
+- name: Setup fail2ban
+  include_tasks: fail2ban.yaml
+
+# AppArmor
+- name: Setup and Enable AppArmor
+  include_tasks: apparmor.yaml  
+
+- name: Reboot the server
+  ansible.builtin.reboot:

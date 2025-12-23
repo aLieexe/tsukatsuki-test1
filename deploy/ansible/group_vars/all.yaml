@@ -1,0 +1,15 @@
+project_name: tsukatsuki-test1
+local_project_path: /home/alie/code/tsukatsuki-tests/go-test-app
+remote_project_path: /home/tsukatsuki/tsukatsuki-test1
+generated_folder_name: deploy
+remote_proxy_path: /home/tsukatsuki/proxy
+env_file_name: .env
+
+ssh_key_folder_name: "key"
+project_compose_file_name: "project-compose.yaml"
+proxy_compose_file_name: "proxy-compose.yaml"
+
+ssh_new_port: 2222
+
+# This will be used for testing, for now
+setup_user: root

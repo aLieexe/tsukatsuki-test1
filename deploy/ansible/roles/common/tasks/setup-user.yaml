@@ -1,0 +1,31 @@
+- name: Create a user with sudo privileges
+  ansible.builtin.user:
+    name: "{{ setup_user }}"
+    create_home: yes
+    shell: /bin/bash
+    groups: sudo
+    append: yes
+
+- name: Ensure key directory exists.
+  ansible.builtin.file:
+    path: "{{ playbook_dir }}/key"
+    state: directory
+    mode: '0755'
+  become: false
+  delegate_to: localhost
+
+- name: Generate SSH key for deploy_user
+  community.crypto.openssh_keypair:
+    path: "{{ playbook_dir }}/key/{{ setup_user }}"
+    type: rsa
+    comment: "ansible-generated Deployment user"
+    size: 2048
+    mode: '0600'
+  delegate_to: localhost
+  become: false
+
+- name: Deploy the generated public key to remote hosts
+  ansible.posix.authorized_key:
+    user: "{{ setup_user }}"
+    state: present
+    key: "{{ lookup('file', playbook_dir + '/key/' + setup_user + '.pub') }}"

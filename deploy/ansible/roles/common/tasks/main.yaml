@@ -1,0 +1,73 @@
+- name: Update dependency cache
+  ansible.builtin.apt:
+    update_cache: yes
+    upgrade: dist
+
+- name: Install essential packages
+  ansible.builtin.apt:
+    pkg: "{{ package_needed }}"
+    state: present
+
+- name: Enable timedatectl ntp
+  ansible.builtin.service:
+    name: systemd-timesyncd.service
+    enabled: yes
+
+- name: Configure default incoming/outgoing rules with UFW
+  community.general.ufw:
+    direction: "{{ item.direction }}"
+    policy: "{{ item.policy }}"
+    state: enabled
+  loop:
+  - { direction: outgoing, policy: allow }
+  - { direction: incoming, policy: deny }
+
+- name: Configure UFW to allow SSH, HTTP, and HTTPS
+  community.general.ufw:
+    rule: allow
+    proto: tcp
+    port: '{{item}}'
+  loop:
+  - '80'
+  - '443'
+  - '22'
+
+- name: Enable UFW
+  community.general.ufw:
+    state: enabled
+
+# Used in the case of if user is a root user, useful in minimal installation
+# SSH by default did not permit any root login, therefore this probbaly only gonna be used during molecule testing, teehee
+- name: Create a setup user
+  ansible.builtin.include_tasks:
+    file: setup-user.yaml
+  when: ansible_user == "root" 
+
+- name: Define deploy user variable for readability
+  set_fact:
+    # extracting this to a variable makes the lines below much easier to read
+    deploy_user: "{{ hostvars['deploy_user'].ansible_user }}"
+
+- name: Create a user
+  ansible.builtin.user:
+    name: "{{ deploy_user }}"
+    create_home: yes
+    # We need this to give it actual shell 
+    shell: /bin/bash
+    # unlock account so SSH can use pubkey auth. JUST IN CASE Pubkey only is enabled, otherwise account will be locked
+    password_lock: false
+    password: "!"
+  register: user_info
+  when: not molecule_testing  | default(false)
+
+- name: Ensure the deploy user account is unlocked
+  ansible.builtin.command:
+    cmd: "passwd -d {{ deploy_user }}"
+  when: not molecule_testing  | default(false)
+
+- name: Show what was returned
+  ansible.builtin.debug:
+    var: user_info
+
+- name: Create a SSH Key for users
+  include_tasks: ssh-key.yaml

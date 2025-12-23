@@ -1,0 +1,52 @@
+name: CD
+on:
+  push:
+    branches: 
+      - main
+  pull_request:
+    branches:
+      - main
+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build image as tar
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        file: ./deploy/conf/Dockerfile
+        tags: tsukatsuki-test1:latest
+        outputs: type=docker,dest=./app.tar
+
+    - name: Copy tar to server
+      uses: appleboy/scp-action@v1.0.0
+      with:
+        host:  ${{ secrets.SSH_IP }}
+        username:  ${{ secrets.SSH_USER }}
+        key:  ${{ secrets.SSH_KEY }}
+        port:  ${{ secrets.SSH_PORT }}
+        source: "app.tar"
+        target: "/home/tsukatsuki/tsukatsuki-test1"
+
+    - name: the deployment
+      timeout-minutes: 10
+      uses: appleboy/ssh-action@v1.2.0
+      with:
+        host:  ${{ secrets.SSH_IP }}
+        username:  ${{ secrets.SSH_USER }}
+        key:  ${{ secrets.SSH_KEY }}
+        port:  ${{ secrets.SSH_PORT }}
+        script: |
+          cd /home/tsukatsuki/tsukatsuki-test1
+          git pull || true
+          docker load -i app.tar
+          cd deploy/conf
+          docker compose up -d

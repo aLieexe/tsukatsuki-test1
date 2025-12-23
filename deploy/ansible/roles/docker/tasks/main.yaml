@@ -1,0 +1,79 @@
+- name: Update packages
+  ansible.builtin.apt: 
+    update_cache: yes
+
+- name: Ensures docker dependency is installed
+  ansible.builtin.apt:
+    pkg: "{{ docker_dependency_pkg }}"
+    state: present
+
+- name: Create direactory for apt keyrings
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download Docker's official GPG key
+  ansible.builtin.get_url:
+    url: "{{ docker_apt_gpg_key }} "
+    dest: /etc/apt/keyrings/docker.asc
+    mode: '0644'
+    force: yes
+
+- name: Ensure /etc/docker/ directory exists.
+  file:
+    path: /etc/docker
+    state: directory
+    mode: '0755'
+
+- name: Debug
+  debug:
+    msg: "deb [arch={{ docker_apt_arch }} signed-by=/etc/apt/keyrings/docker.asc] {{ docker_repo_url }}/{{ docker_apt_ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+
+- name: Add Docker to apt repo
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ docker_apt_arch }} signed-by=/etc/apt/keyrings/docker.asc] {{ docker_repo_url }}/{{ docker_apt_ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+    state: present
+    filename: docker
+  notify: Update apt cache
+    
+- name: Install docker 
+  become: yes
+  ansible.builtin.apt:
+    pkg:
+      - docker-ce
+      - docker-ce-cli 
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+
+- name: Add multiple users to docker group
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: yes
+  loop:
+    - "{{ hostvars['setup_user'].ansible_user }}"
+    - "{{ hostvars['deploy_user'].ansible_user }}"
+  notify: Restart docker
+
+
+- name: Copy docker daemon json
+  ansible.builtin.copy:
+    src: daemon.json
+    dest: /etc/docker/daemon.json
+    owner: "{{ hostvars['deploy_user'].ansible_user }}"
+    group: "{{ hostvars['deploy_user'].ansible_user }}"
+    mode: '0644'
+  notify: Restart docker
+
+- name: Get docker service status
+  ansible.builtin.command: systemctl is-active docker
+  register: docker_status
+  changed_when: false
+  failed_when: false
+
+- name: Display docker service status
+  ansible.builtin.debug:
+    msg: "Docker service status: {{ docker_status.stdout }}"

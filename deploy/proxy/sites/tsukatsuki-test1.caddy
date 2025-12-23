@@ -1,0 +1,13 @@
+app1.alieexe.me {
+	reverse_proxy tsukatsuki-test1:4000
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy no-referrer
+		Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+		# Content-Security-Policy "default-src 'self'"
+	}
+
+	encode gzip zstd
+}

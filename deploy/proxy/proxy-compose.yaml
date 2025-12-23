@@ -1,0 +1,25 @@
+services:
+  caddy: 
+    image: caddy:2.10.2-alpine 
+    container_name: caddy-proxy
+    restart: always
+    ports:
+    - "80:80"
+    - "443:443"
+    volumes:
+    - ./Caddyfile:/etc/caddy/Caddyfile
+    - ./sites:/etc/caddy/sites
+    - caddy_data:/data
+    - caddy_config:/config
+    networks:
+    - proxy_network
+
+volumes:
+    caddy_data:
+    caddy_config:
+  
+networks:
+  proxy_network:
+    name: proxy_network
+    driver: bridge
+    enable_ipv6: true

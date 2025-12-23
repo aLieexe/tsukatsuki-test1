@@ -1,0 +1,27 @@
+project:
+  name: tsukatsuki-test1
+  port: 4000
+  runtime: go
+  build_image: golang:1.24.4-bookworm
+  entrypoint: ./cmd/web
+server:
+  ip: 103.181.182.193
+  setup_user: alie
+  ssh_port: 2222
+  security: true
+proxy:
+  type: caddy
+  domain: app1.alieexe.me
+  docker_image: caddy:2.10.2-alpine
+  acme_email: rizky.23118@mhs.unesa.ac.id
+services:
+- name: postgresql
+  docker_image: postgres:18.0-alpine
+path:
+  local_path: /home/alie/code/tsukatsuki-tests/go-test-app
+  remote_path: /home/tsukatsuki/tsukatsuki-test1
+  output_dir: deploy
+  env_file: .env
+github_actions:
+- type: actions-ci
+- type: actions-cd
