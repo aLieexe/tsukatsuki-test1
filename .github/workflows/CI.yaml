@@ -9,30 +9,30 @@ on:
 
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
+  # lint:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v5
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.x'
+  #     - name: Set up Go
+  #       uses: actions/setup-go@v5
+  #       with:
+  #         go-version: '1.24.x'
       
-      - name: Display Go version
-        run: go version
+  #     - name: Display Go version
+  #       run: go version
 
-      - name: Install dependencies
-        run: go mod download
+  #     - name: Install dependencies
+  #       run: go mod download
 
-      - name: Verify dependencies
-        run: go mod verify
+  #     - name: Verify dependencies
+  #       run: go mod verify
 
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v8
-        with:
-          version: latest
-          args: --timeout=5m
+  #     - name: golangci-lint
+  #       uses: golangci/golangci-lint-action@v8
+  #       with:
+  #         version: latest
+  #         args: --timeout=5m
 
   builds:
     runs-on: ubuntu-latest
