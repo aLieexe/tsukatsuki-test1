@@ -49,4 +49,4 @@ jobs:
           git pull || true
           docker load -i app.tar
           cd deploy/conf
-          docker compose -f project-compose.yaml up -d 
+          docker compose -p test -f project-compose.yaml up -d
