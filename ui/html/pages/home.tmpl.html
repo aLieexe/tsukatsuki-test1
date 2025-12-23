@@ -1,0 +1,40 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <header>
+        <h1><a href='/'>Home Page Baby</a></h1>
+    </header>
+    <main>
+        <h2>Latest Snippets</h2>
+        <p>There's nothing to see here yet!</p>
+    </main>
+    <footer>Powered by <a href='https://golang.org/'>Go</a></footer>
+</body>
+</html> -->
+
+{{define "title"}}Home{{end}}
+{{define "main"}}
+    {{if .Snippets}}
+        <table>
+            <tr>
+                <th>Title</th>
+                <th>Created</th>
+                <th>ID</th>
+            </tr>
+        {{range .Snippets}}
+            <tr>
+                <th> <a href='/snippet/view/{{.Id}}'>{{.Title}} </a></th>
+                <th>{{.CreatedAt.Format "Jan 02, 2006 15:04:05 UTC"}}</th>
+                <th>{{.Id}}</th>
+            </tr>
+        {{end}}
+        </table>
+    {{else}}
+        <p>There's nothing to see here... yet!</p>  
+    {{end}}
+{{end}}
